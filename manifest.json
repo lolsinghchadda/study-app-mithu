@@ -1,6 +1,6 @@
 {
   "name": "For Mithu PO",
-  "short_name": "StudyApp",
+  "short_name": "forMithu",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FFFDF5",
@@ -17,4 +17,5 @@
       "type": "image/png"
     }
   ]
+
 }
