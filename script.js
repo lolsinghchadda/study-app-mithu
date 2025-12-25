@@ -602,4 +602,29 @@ function updateTotalHoursUI() {
     const total = appState.totalStudyHours || 0;
     const el = document.getElementById('total-hours-display');
     if(el) el.textContent = `${total.toFixed(1)} hrs`;
+
+}
+
+// --- RESET DATA LOGIC ---
+function resetAppData() {
+    const confirmReset = confirm("Are you sure you want to delete all data? This cannot be undone.");
+    
+    if (confirmReset) {
+        // 1. Clear Local Storage
+        localStorage.removeItem('studyApp_v4');
+        
+        // 2. Reset State in Memory
+        appState = {
+            streak: 0, 
+            lastCheckIn: null, 
+            syllabus: {}, 
+            mockScores: { prelims: [], mains: [] },
+            totalStudyHours: 0,
+            usedReasonIndices: []
+        };
+        
+        // 3. Reload Page to Refresh UI
+        alert("App has been reset to new.");
+        window.location.reload();
+    }
 }
