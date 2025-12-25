@@ -612,7 +612,7 @@ function resetAppData() {
     if (confirmReset) {
         // 1. Clear Local Storage
         localStorage.removeItem('studyApp_v4');
-        
+        localStorage.removeItem('mithu_intro_shown');
         // 2. Reset State in Memory
         appState = {
             streak: 0, 
@@ -628,3 +628,38 @@ function resetAppData() {
         window.location.reload();
     }
 }
+
+// --- GSAP GIFT REVEAL LOGIC ---
+function openGift() {
+    // 1. Safety Check: If GSAP didn't load, hide manually
+    if (typeof gsap === 'undefined') {
+        document.getElementById('intro-overlay').style.display = 'none';
+        localStorage.setItem('mithu_intro_shown', 'true');
+        return;
+    }
+
+    // 2. Play Animation
+    const tl = gsap.timeline({
+        onComplete: () => {
+            document.getElementById('intro-overlay').style.display = 'none';
+        }
+    });
+
+    // Fade out text/button
+    tl.to('.intro-content', {
+        duration: 0.4, scale: 0.8, opacity: 0, ease: "back.in(1.7)"
+    });
+
+    // Open Curtains
+    tl.to('.curtain-left', {
+        duration: 2.0, x: '-100%', ease: "power4.inOut"
+    }, 0.3);
+
+    tl.to('.curtain-right', {
+        duration: 2.0, x: '100%', ease: "power4.inOut"
+    }, 0.3);
+
+    // 3. Remember that she opened it
+    localStorage.setItem('mithu_intro_shown', 'true');
+}
+
