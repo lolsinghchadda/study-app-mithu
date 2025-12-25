@@ -199,22 +199,82 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
 .emotion-card span.material-symbols-rounded { font-size: 32px; color: var(--primary); }
 .emotion-card:active { transform: scale(0.95); }
 
-/* --- Message Overlay --- */
+/* --- FIXED MESSAGE OVERLAY (Scrollable Text) --- */
 .overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
-    z-index: 100; display: flex; align-items: center; justify-content: center;
-    padding: 30px; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); /* Darker dim for focus */
+    backdrop-filter: blur(8px);   /* Stronger blur */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px; /* Safety padding from screen edges */
 }
-.overlay:not(.hidden) { opacity: 1; pointer-events: auto; }
-.message-popup {
-    background: white; padding: 40px 30px; border-radius: 30px;
-    text-align: center; max-width: 400px; width: 100%;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform: translateY(20px); transition: transform 0.3s;
+
+.overlay.hidden {
+    display: none;
 }
-.overlay:not(.hidden) .message-popup { transform: translateY(0); }
-.icon-large { font-size: 48px; color: var(--accent-pop); margin-bottom: 20px; display: block; }
-.message-popup p { font-size: 18px; font-weight: 600; }
+
+.overlay-content {
+    background: #FFFFFF;
+    width: 100%;
+    max-width: 340px; /* Keeps it nice and slim */
+    
+    /* VITAL: Prevents it from being taller than the screen */
+    max-height: 80vh; 
+    
+    border-radius: 24px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    
+    /* NEW: Flexbox layout to manage long text */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: zoomIn 0.3s ease;
+}
+
+/* The actual text container */
+#message-text {
+    font-size: 16px;
+    color: var(--text-main);
+    line-height: 1.6;
+    margin-bottom: 25px;
+    margin-top: 10px;
+    
+    /* SCROLLING MAGIC */
+    overflow-y: auto;     /* Scroll if too long */
+    flex-grow: 1;         /* Take up available space */
+    padding-right: 5px;   /* Space for scrollbar */
+    text-align: left;     /* Easier to read paragraphs */
+    white-space: pre-wrap; /* Keeps paragraph breaks */
+}
+
+/* Make the scrollbar look cute/subtle */
+#message-text::-webkit-scrollbar {
+    width: 4px;
+}
+#message-text::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 4px;
+}
+
+/* The Close Button - Always visible at bottom */
+.close-btn {
+    background: var(--text-main);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: center; /* Center the button horizontally */
+    flex-shrink: 0;     /* Prevent button from getting squished */
+    width: 100%;        /* Full width button is easier to tap */
+}
 
 /* --- Navigation Bar --- */
 .glass-nav {
@@ -620,3 +680,4 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
     line-height: 1.6; /* Better readability */
     white-space: pre-wrap; /* Preserves paragraphs */
 }
+
