@@ -685,18 +685,20 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
     top: 0; 
     left: 0; 
     right: 0; 
-    bottom: 0; /* Forces it to touch the bottom edge */
-    width: 100vw; /* Full Viewport Width */
-    height: 100vh; /* Full Viewport Height */
-    background: #2D3A36; /* Safety background color */
-    z-index: 99999; /* Super high z-index */
+    bottom: 0;
+    width: 100vw; 
+    height: 100vh;
+    
+    /* CHANGE THIS: Transparent so we see the app when curtains open */
+    background: transparent; 
+    
+    z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    touch-action: none; /* Prevents scrolling while gift is open */
+    touch-action: none;
 }
-
 /* Ensure panels stretch fully */
 .curtain-panel {
     position: absolute;
@@ -722,6 +724,7 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
     cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     display: inline-flex; justify-content: center; align-items: center; gap: 10px;
 }
+
 
 
 
