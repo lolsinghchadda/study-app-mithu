@@ -608,4 +608,15 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
 @keyframes popIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+
+}
+
+/* Fix for Long Messages in Popups */
+.message-content {
+    max-height: 60vh; /* Maximum height is 60% of screen */
+    overflow-y: auto; /* Add scrollbar if text is too long */
+    text-align: left; /* Easier to read long text */
+    padding-right: 10px; /* Space for scrollbar */
+    line-height: 1.6; /* Better readability */
+    white-space: pre-wrap; /* Preserves paragraphs */
 }
