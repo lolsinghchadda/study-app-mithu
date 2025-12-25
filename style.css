@@ -688,5 +688,48 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
     line-height: 1.6; /* Better readability */
     white-space: pre-wrap; /* Preserves paragraphs */
 }
+/* --- REALISTIC CURTAIN REVEAL --- */
+.intro-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.curtain-panel {
+    position: absolute;
+    top: 0;
+    width: 50%; height: 100%;
+    background-color: #2D3A36;
+    /* Fabric folds effect */
+    background-image: repeating-linear-gradient(90deg, #2D3A36, #2D3A36 40px, #232e2b 40px, #232e2b 80px);
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
+    z-index: 10000;
+}
+
+.curtain-left { 
+    left: 0; border-right: 2px solid rgba(0,0,0,0.3); transform-origin: top left; 
+}
+.curtain-right { 
+    right: 0; border-left: 2px solid rgba(0,0,0,0.3); transform-origin: top right; 
+}
+
+.intro-content {
+    position: relative; z-index: 10001; text-align: center; color: white;
+}
+
+.ribbon-btn {
+    background: #E8C1C6; color: #2D3A36; border: 2px solid #fff;
+    padding: 15px 45px; border-radius: 50px; font-size: 16px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transition: transform 0.2s; display: inline-flex; align-items: center; gap: 10px;
+}
+.ribbon-btn:active { transform: scale(0.95); }
 
 
