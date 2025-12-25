@@ -15,11 +15,31 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+    <div id="intro-overlay" class="intro-overlay">
+        <div class="curtain-panel curtain-left"></div>
+        <div class="curtain-panel curtain-right"></div>
+        
+        <div class="intro-content">
+            <span class="material-symbols-rounded gift-icon" style="font-size: 60px; color: #E8C1C6; margin-bottom: 15px; display:block;">redeem</span>
+            <h1 style="font-size: 28px; margin-bottom: 5px; font-weight: 300; color: #fff;">For Mithu</h1>
+            <p style="margin-bottom: 25px; opacity: 0.8; color: #fff;">A little magic for your journey.</p>
+            
+            <button onclick="openGift()" class="ribbon-btn">
+                <span class="material-symbols-rounded">content_cut</span>
+                Open
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        if (localStorage.getItem('mithu_intro_shown') === 'true') {
+            document.getElementById('intro-overlay').style.display = 'none';
+        }
+    </script>
     <header class="app-header">
         <div class="logo">
             <span class="material-symbols-rounded icon-logo">favorite</span>
@@ -342,6 +362,7 @@
 </body>
 
 </html>
+
 
 
 
