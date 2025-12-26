@@ -50,7 +50,6 @@ const DATA = {
         "Take a deep breath. Analysis is more important than the score.",
         "You showed up. That is the biggest win today. 🌟"
     ],
-    // --- 100 UNIQUE REASONS ---
     reasons: [
         "You show up for yourself every single day.",
         "You are my absolute favorite person.",
@@ -224,17 +223,30 @@ let appState = {
     usedReasonIndices: [] 
 };
 
-// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Gift Check
+    const introShown = localStorage.getItem('mithu_intro_shown');
+    if (introShown === 'true') {
+        const overlay = document.getElementById('intro-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // 2. Load Data (Now Crash-Proof)
     loadData();
-    initGreeting();
-    renderAffirmation();
-    updateStreakUI();
-    updateCountdown();
-    initSubjectFilters('prelims');
-    initChart();
-    renderMockWelcome();
-    updateTotalHoursUI();
+
+    // 3. Initialize UI (Wrapped in safety checks)
+    try { initGreeting(); } catch(e) { console.log(e); }
+    try { renderAffirmation(); } catch(e) { console.log(e); }
+    try { updateStreakUI(); } catch(e) { console.log(e); }
+    try { updateCountdown(); } catch(e) { console.log(e); }
+    try { updateTotalHoursUI(); } catch(e) { console.log(e); }
+
+    // 4. Initialize Complex Elements
+    setTimeout(() => {
+        try { initSubjectFilters('prelims'); } catch(e) { console.error("Syllabus Error:", e); }
+        try { initChart(); } catch(e) { console.error("Chart Error:", e); }
+        try { renderMockWelcome(); } catch(e) { console.error("Mock Msg Error:", e); }
+    }, 50); // Small delay ensures HTML is ready
 });
 
 // --- CORE FUNCTIONS ---
@@ -249,22 +261,47 @@ function initGreeting() {
     if(greetEl) greetEl.textContent = msg;
 }
 
+// --- FIXED LOAD DATA FUNCTION ---
 function loadData() {
-    const saved = localStorage.getItem('studyApp_v4');
-    if (saved) {
-        appState = JSON.parse(saved);
-        // Safety checks
-        if(Array.isArray(appState.mockScores)) {
-            appState.mockScores = { prelims: [], mains: [] }; 
+    try {
+        const saved = localStorage.getItem('studyApp_v4');
+        if (saved && saved !== "undefined" && saved !== "null") {
+            appState = JSON.parse(saved);
+            
+            // Safety Checks
+            if (!appState.syllabus) appState.syllabus = {};
+            if (!Array.isArray(appState.mockScores.prelims)) appState.mockScores.prelims = [];
+            if (!Array.isArray(appState.mockScores.mains)) appState.mockScores.mains = [];
+            if (!appState.usedReasonIndices) appState.usedReasonIndices = [];
+        } else {
+            throw new Error("No saved data found");
         }
-        if(!appState.syllabus) appState.syllabus = {};
-    } else {
-        DATA.syllabus.prelims.forEach(t => appState.syllabus[t] = 0);
-        DATA.syllabus.mains.forEach(t => appState.syllabus[t] = 0);
-    }
+    } catch (e) {
+        console.warn("Initializing new data...", e);
+        
+        // 1. Set Default State
+        appState = {
+            streak: 0, 
+            lastCheckIn: null, 
+            syllabus: {}, 
+            mockScores: { prelims: [], mains: [] },
+            totalStudyHours: 0,
+            usedReasonIndices: []
+        };
+        
+        // 2. FIXED: Correctly loop through the nested syllabus object
+        // We use Object.values() to get the arrays, then .flat() to merge them
+        const allPrelimsTopics = Object.values(DATA.syllabus.prelims).flat();
+        const allMainsTopics = Object.values(DATA.syllabus.mains).flat();
 
-    // --- FORCE RESET: Always start with fresh reasons on page load ---
-    appState.usedReasonIndices = []; 
+        allPrelimsTopics.forEach(topic => {
+            appState.syllabus[topic] = 0;
+        });
+        
+        allMainsTopics.forEach(topic => {
+            appState.syllabus[topic] = 0;
+        });
+    }
 }
 
 function saveData() {
@@ -398,7 +435,6 @@ function generateReasons() {
     const btn = document.getElementById('generate-btn');
     const endMsg = document.getElementById('reasons-end-msg');
     
-    // Safety check for usedReasonIndices (Fixes the bug)
     if (!appState.usedReasonIndices) appState.usedReasonIndices = [];
 
     const totalReasons = DATA.reasons.length;
@@ -423,7 +459,6 @@ function generateReasons() {
         
         const li = document.createElement('li');
         li.textContent = txt;
-        // Stagger animation (makes them pop in one by one)
         li.style.animationDelay = `${count * 0.1}s`;
         list.appendChild(li);
         
@@ -602,38 +637,14 @@ function updateTotalHoursUI() {
     const total = appState.totalStudyHours || 0;
     const el = document.getElementById('total-hours-display');
     if(el) el.textContent = `${total.toFixed(1)} hrs`;
-
-}
-
-// --- RESET DATA LOGIC ---
-function resetAppData() {
-    const confirmReset = confirm("Are you sure you want to delete all data? This cannot be undone.");
-    
-    if (confirmReset) {
-        // 1. Clear Local Storage
-        localStorage.removeItem('studyApp_v4');
-        localStorage.removeItem('mithu_intro_shown');
-        // 2. Reset State in Memory
-        appState = {
-            streak: 0, 
-            lastCheckIn: null, 
-            syllabus: {}, 
-            mockScores: { prelims: [], mains: [] },
-            totalStudyHours: 0,
-            usedReasonIndices: []
-        };
-        
-        // 3. Reload Page to Refresh UI
-        alert("App has been reset to new.");
-        window.location.reload();
-    }
 }
 
 // --- GSAP GIFT REVEAL LOGIC ---
 function openGift() {
-    // 1. Safety Check: If GSAP didn't load, hide manually
+    // 1. Check if GSAP is available
     if (typeof gsap === 'undefined') {
-        document.getElementById('intro-overlay').style.display = 'none';
+        // Fallback if library didn't load
+        document.getElementById('intro-overlay').classList.add('hidden');
         localStorage.setItem('mithu_intro_shown', 'true');
         return;
     }
@@ -641,16 +652,17 @@ function openGift() {
     // 2. Play Animation
     const tl = gsap.timeline({
         onComplete: () => {
+            // Remove from screen entirely when done
             document.getElementById('intro-overlay').style.display = 'none';
         }
     });
 
-    // Fade out text/button
+    // Content fade out
     tl.to('.intro-content', {
         duration: 0.4, scale: 0.8, opacity: 0, ease: "back.in(1.7)"
     });
 
-    // Open Curtains
+    // Curtains open
     tl.to('.curtain-left', {
         duration: 2.0, x: '-100%', ease: "power4.inOut"
     }, 0.3);
@@ -659,7 +671,28 @@ function openGift() {
         duration: 2.0, x: '100%', ease: "power4.inOut"
     }, 0.3);
 
-    // 3. Remember that she opened it
+    // 3. Mark as SEEN forever
     localStorage.setItem('mithu_intro_shown', 'true');
 }
 
+// --- RESET DATA LOGIC (Updated to include Gift) ---
+function resetAppData() {
+    const confirmReset = confirm("Are you sure you want to delete all data? This cannot be undone.");
+    
+    if (confirmReset) {
+        // 1. Clear Local Storage (App Data)
+        localStorage.removeItem('studyApp_v4');
+        
+        // 2. Clear Gift Flag (So you can see the curtains again)
+        localStorage.removeItem('mithu_intro_shown');
+        
+        // 3. Reset State in Memory
+        appState = {
+            streak: 0, lastCheckIn: null, syllabus: {}, 
+            mockScores: { prelims: [], mains: [] }, totalStudyHours: 0, usedReasonIndices: []
+        };
+        
+        alert("App has been reset to new.");
+        window.location.reload();
+    }
+}
