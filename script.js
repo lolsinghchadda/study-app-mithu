@@ -233,14 +233,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Load Data (Now Crash-Proof)
     loadData();
-    appState.streak = 6;
     // 3. Initialize UI (Wrapped in safety checks)
     try { initGreeting(); } catch(e) { console.log(e); }
     try { renderAffirmation(); } catch(e) { console.log(e); }
     try { updateStreakUI(); } catch(e) { console.log(e); }
     try { updateCountdown(); } catch(e) { console.log(e); }
     try { updateTotalHoursUI(); } catch(e) { console.log(e); }
-    saveData();
     // 4. Initialize Complex Elements
     setTimeout(() => {
         try { initSubjectFilters('prelims'); } catch(e) { console.error("Syllabus Error:", e); }
@@ -697,4 +695,5 @@ function resetAppData() {
         window.location.reload();
     }
 }
+
 
