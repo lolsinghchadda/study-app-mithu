@@ -233,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Load Data (Now Crash-Proof)
     loadData();
+    appState.streak = 6;
     // 3. Initialize UI (Wrapped in safety checks)
     try { initGreeting(); } catch(e) { console.log(e); }
     try { renderAffirmation(); } catch(e) { console.log(e); }
@@ -240,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { updateCountdown(); } catch(e) { console.log(e); }
     try { updateTotalHoursUI(); } catch(e) { console.log(e); }
     // 4. Initialize Complex Elements
+    saveData();
     setTimeout(() => {
         try { initSubjectFilters('prelims'); } catch(e) { console.error("Syllabus Error:", e); }
         try { initChart(); } catch(e) { console.error("Chart Error:", e); }
