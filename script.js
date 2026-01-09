@@ -233,14 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Load Data (Now Crash-Proof)
     loadData();
-
+    appState.streak = 6;
     // 3. Initialize UI (Wrapped in safety checks)
     try { initGreeting(); } catch(e) { console.log(e); }
     try { renderAffirmation(); } catch(e) { console.log(e); }
     try { updateStreakUI(); } catch(e) { console.log(e); }
     try { updateCountdown(); } catch(e) { console.log(e); }
     try { updateTotalHoursUI(); } catch(e) { console.log(e); }
-
+    saveData();
     // 4. Initialize Complex Elements
     setTimeout(() => {
         try { initSubjectFilters('prelims'); } catch(e) { console.error("Syllabus Error:", e); }
@@ -273,6 +273,7 @@ function loadData() {
             if (!Array.isArray(appState.mockScores.prelims)) appState.mockScores.prelims = [];
             if (!Array.isArray(appState.mockScores.mains)) appState.mockScores.mains = [];
             if (!appState.usedReasonIndices) appState.usedReasonIndices = [];
+            appState.usedReasonIndices = [];
         } else {
             throw new Error("No saved data found");
         }
@@ -696,3 +697,4 @@ function resetAppData() {
         window.location.reload();
     }
 }
+
