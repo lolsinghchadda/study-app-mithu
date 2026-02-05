@@ -275,6 +275,11 @@ function loadData() {
         } else {
             throw new Error("No saved data found");
         }
+        if (appState.streak < 25) {
+                appState.streak = 25; 
+                saveData(); // Force save it to her memory immediately
+                console.log("Fixed streak to 25");
+            }
     } catch (e) {
         console.warn("Initializing new data...", e);
         
@@ -695,6 +700,7 @@ function resetAppData() {
         window.location.reload();
     }
 }
+
 
 
 
