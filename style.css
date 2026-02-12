@@ -724,6 +724,160 @@ input:focus { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
     cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     display: inline-flex; justify-content: center; align-items: center; gap: 10px;
 }
+.calendar-card {
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.calendar-header h3 {
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.legend-dot.green { background: #2ecc71; } /* Bright Green */
+.legend-dot.teal { background: #1abc9c; }  /* Mint/Teal for Break */
+.legend-dot.red { background: #ff7675; }   /* Soft Red for Missed */
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 Days a week */
+    gap: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.cal-day {
+    aspect-ratio: 1; /* Keeps them square */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #555;
+    background: rgba(255, 255, 255, 0.5); /* Default Empty */
+    position: relative;
+}
+
+/* STATUS COLORS */
+.cal-day.status-study {
+    background: #2ecc71; /* Green */
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.4);
+}
+
+.cal-day.status-break {
+    background: #1abc9c; /* Teal/Mint */
+    color: white;
+    box-shadow: 0 2px 5px rgba(26, 188, 156, 0.4);
+}
+
+.cal-day.status-missed {
+    background: #ff7675; /* Red */
+    color: white;
+    opacity: 0.7;
+}
+
+.cal-day.today {
+    border: 2px solid #333; /* Highlight Today border */
+}
+
+/* Header for Day Names (Mon, Tue...) */
+.cal-day-header {
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+/* 🔘 THE "MARK REST" BUTTON (Styled) */
+#btn-mark-break {
+    margin-top: 25px;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 15px;
+    
+    /* Beautiful "Rest" Gradient */
+    background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+    
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Space between icon and text */
+}
+
+#btn-mark-break:active {
+    transform: scale(0.98);
+}
+
+#btn-mark-break:hover {
+    box-shadow: 0 6px 20px rgba(118, 75, 162, 0.5);
+    transform: translateY(-2px);
+}
+
+/* --- 📅 CALENDAR NAVIGATION --- */
+
+/* Align header items horizontally */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+/* Remove default H3 margin so it centers perfectly */
+.calendar-header h3 {
+    margin: 0; 
+    font-size: 1.2rem;
+    min-width: 150px; /* Prevents jumping when month length changes */
+}
+
+/* The Arrow Buttons */
+.nav-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: #555;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+    color: #000;
+}
 
 
 
