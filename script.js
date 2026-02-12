@@ -220,7 +220,8 @@ let appState = {
     syllabus: {}, 
     mockScores: { prelims: [], mains: [] },
     totalStudyHours: 0,
-    usedReasonIndices: [] 
+    usedReasonIndices: [],
+    dayHistory: {} 
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -230,37 +231,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlay = document.getElementById('intro-overlay');
         if (overlay) overlay.style.display = 'none';
     }
-    document.getElementById('btn-mark-break').addEventListener('click', () => {
-    markDay('break');
-    alert("Enjoy your rest! 🛌 It counts as a valid break.");
-        });
-    // 2. Load Data (Now Crash-Proof)
+
+    // 2. Load Data
     loadData();
+
     // 3. Initialize UI (Wrapped in safety checks)
     try { initGreeting(); } catch(e) { console.log(e); }
     try { renderAffirmation(); } catch(e) { console.log(e); }
     try { updateStreakUI(); } catch(e) { console.log(e); }
     try { updateCountdown(); } catch(e) { console.log(e); }
     try { updateTotalHoursUI(); } catch(e) { console.log(e); }
+    
+    // Calendar Navigation Listeners
     document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
     document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
     
-    // Mark Rest Button
-    document.getElementById('btn-mark-break').addEventListener('click', () => {
-        const key = getTodayKey();
-        appState.dayHistory[key] = 'break';
-        saveData();
-        renderCalendar(); // Re-render to show the new status immediately
-        alert("Enjoy your rest! 🛌 It counts as a valid break.");
-    });
+    // Mark Rest Button Listener (Single, Clean Listener)
+    const restBtn = document.getElementById('btn-mark-break');
+    if (restBtn) {
+        restBtn.addEventListener('click', () => {
+            markDay('break');
+            alert("Enjoy your rest! 🛌 It counts as a valid break.");
+        });
+    }
 
     renderCalendar(); // Initial Draw
-    // 4. Initialize Complex Elements
+    
+    // 4. Initialize Complex Elements with delay
     setTimeout(() => {
         try { initSubjectFilters('prelims'); } catch(e) { console.error("Syllabus Error:", e); }
         try { initChart(); } catch(e) { console.error("Chart Error:", e); }
         try { renderMockWelcome(); } catch(e) { console.error("Mock Msg Error:", e); }
-    }, 50); // Small delay ensures HTML is ready
+    }, 50); 
 });
 
 // --- CORE FUNCTIONS ---
@@ -275,8 +277,7 @@ function initGreeting() {
     if(greetEl) greetEl.textContent = msg;
 }
 
-// --- FIXED LOAD DATA FUNCTION ---
-// --- FIXED LOAD DATA FUNCTION (Production Version) ---
+// --- LOAD DATA FUNCTION ---
 function loadData() {
     try {
         const saved = localStorage.getItem('studyApp_v4');
@@ -287,12 +288,7 @@ function loadData() {
             if (!appState.syllabus) appState.syllabus = {};
             if (!Array.isArray(appState.mockScores.prelims)) appState.mockScores.prelims = [];
             if (!Array.isArray(appState.mockScores.mains)) appState.mockScores.mains = [];
-            
-            // 🆕 CALENDAR FIX: Ensure dayHistory exists so calendar doesn't crash
             if (!appState.dayHistory) appState.dayHistory = {};
-
-            // 🆕 REASONS FIX: Always reset this to empty on load
-            // This ensures the "Tell me why" game is fresh every time she opens the app
             appState.usedReasonIndices = [];
             
         } else {
@@ -309,7 +305,7 @@ function loadData() {
             mockScores: { prelims: [], mains: [] },
             totalStudyHours: 0,
             usedReasonIndices: [],
-            dayHistory: {} // 🆕 Added for Calendar
+            dayHistory: {} 
         };
         
         // 2. Syllabus Logic
@@ -356,7 +352,7 @@ if(checkInBtn) {
         if (appState.lastCheckIn !== today) {
             appState.streak++;
             appState.lastCheckIn = today;
-            markDay('study');
+            markDay('study'); // This needs markDay to exist!
             saveData();
             updateStreakUI();
         }
@@ -442,7 +438,7 @@ function renderTopicList(examType, subjectName) {
 
 // --- MESSAGES ---
 function showMessage(type) {
-    const msgs = messages[type];
+    const msgs = DATA.messages[type];
     const txt = msgs[Math.floor(Math.random() * msgs.length)];
     const el = document.getElementById('message-text');
     if(el) el.textContent = txt;
@@ -666,28 +662,22 @@ function updateTotalHoursUI() {
 
 // --- GSAP GIFT REVEAL LOGIC ---
 function openGift() {
-    // 1. Check if GSAP is available
     if (typeof gsap === 'undefined') {
-        // Fallback if library didn't load
         document.getElementById('intro-overlay').classList.add('hidden');
         localStorage.setItem('mithu_intro_shown', 'true');
         return;
     }
 
-    // 2. Play Animation
     const tl = gsap.timeline({
         onComplete: () => {
-            // Remove from screen entirely when done
             document.getElementById('intro-overlay').style.display = 'none';
         }
     });
 
-    // Content fade out
     tl.to('.intro-content', {
         duration: 0.4, scale: 0.8, opacity: 0, ease: "back.in(1.7)"
     });
 
-    // Curtains open
     tl.to('.curtain-left', {
         duration: 2.0, x: '-100%', ease: "power4.inOut"
     }, 0.3);
@@ -696,27 +686,20 @@ function openGift() {
         duration: 2.0, x: '100%', ease: "power4.inOut"
     }, 0.3);
 
-    // 3. Mark as SEEN forever
     localStorage.setItem('mithu_intro_shown', 'true');
 }
 
-// --- RESET DATA LOGIC (Updated to include Gift) ---
+// --- RESET DATA LOGIC ---
 function resetAppData() {
     const confirmReset = confirm("Are you sure you want to delete all data? This cannot be undone.");
     
     if (confirmReset) {
-        // 1. Clear Local Storage (App Data)
         localStorage.removeItem('studyApp_v4');
-        
-        // 2. Clear Gift Flag (So you can see the curtains again)
         localStorage.removeItem('mithu_intro_shown');
-        
-        // 3. Reset State in Memory
         appState = {
             streak: 0, lastCheckIn: null, syllabus: {}, 
             mockScores: { prelims: [], mains: [] }, totalStudyHours: 0, usedReasonIndices: []
         };
-        
         alert("App has been reset to new.");
         window.location.reload();
     }
@@ -724,7 +707,6 @@ function resetAppData() {
 
 // --- 📅 CALENDAR LOGIC WITH NAVIGATION ---
 
-// 1. Global State for Calendar View (Defaults to Today)
 let currentViewDate = new Date(); 
 
 function getTodayKey() {
@@ -739,21 +721,17 @@ function renderCalendar() {
 
     grid.innerHTML = "";
     
-    // Use the State variable (currentViewDate) instead of "now"
     const viewYear = currentViewDate.getFullYear();
     const viewMonth = currentViewDate.getMonth();
     
     const todayKey = getTodayKey();
 
-    // Update Title
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     monthTitle.innerText = `${monthNames[viewMonth]} ${viewYear}`;
 
-    // Date Math
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); // 0 = Sun
+    const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); 
 
-    // Render Headers (Su, Mo...)
     const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     days.forEach(d => {
         const div = document.createElement('div');
@@ -762,47 +740,29 @@ function renderCalendar() {
         grid.appendChild(div);
     });
 
-    // Empty slots for start of month
     for (let i = 0; i < firstDayIndex; i++) {
         const empty = document.createElement('div');
         grid.appendChild(empty);
     }
 
-    // Render Days
     for (let d = 1; d <= daysInMonth; d++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'cal-day';
         dayDiv.innerText = d;
 
-        // Create YYYY-MM-DD Key
-        // Note: Months are 0-indexed, so we add 1 for the key string
         const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        
-        // Check Status
         const status = appState.dayHistory[dateKey];
 
-        // Highlight Today
         if (dateKey === todayKey) {
             dayDiv.classList.add('today');
         }
 
-        // Apply Colors based on Status
         if (status === 'study') {
-            dayDiv.classList.add('status-study'); // Green
+            dayDiv.classList.add('status-study');
         } else if (status === 'break') {
-            dayDiv.classList.add('status-break'); // Teal
+            dayDiv.classList.add('status-break');
         } 
         
-        // 👇 CHANGED: "Red/Missed" Logic
-        // We ONLY mark it red if:
-        // 1. It has NO status
-        // 2. The date is in the past (before today)
-        // 3. AND the date is AFTER the feature launch date (e.g., Feb 12, 2026)
-        // Since you want ALL history white for now, we just DELETE the 'else if' block entirely.
-        
-        // (If you want "Red" to start appearing from tomorrow onwards, 
-        //  you would uncomment this later. For now, it stays White/Neutral.)
-
         grid.appendChild(dayDiv);
     }
 }
@@ -810,13 +770,14 @@ function renderCalendar() {
 // --- Navigation Functions ---
 
 function changeMonth(step) {
-    // step is -1 (prev) or +1 (next)
     currentViewDate.setMonth(currentViewDate.getMonth() + step);
     renderCalendar();
 }
 
-
-
-
-
-
+// --- 👇 THE MISSING FUNCTION (Added it here) 👇 ---
+function markDay(status) {
+    const key = getTodayKey();
+    appState.dayHistory[key] = status;
+    saveData();
+    renderCalendar(); 
+}
