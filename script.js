@@ -230,7 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlay = document.getElementById('intro-overlay');
         if (overlay) overlay.style.display = 'none';
     }
-
+    document.getElementById('btn-mark-break').addEventListener('click', () => {
+    markDay('break');
+    alert("Enjoy your rest! 🛌 It counts as a valid break.");
+        });
     // 2. Load Data (Now Crash-Proof)
     loadData();
     // 3. Initialize UI (Wrapped in safety checks)
@@ -239,6 +242,19 @@ document.addEventListener('DOMContentLoaded', () => {
     try { updateStreakUI(); } catch(e) { console.log(e); }
     try { updateCountdown(); } catch(e) { console.log(e); }
     try { updateTotalHoursUI(); } catch(e) { console.log(e); }
+    document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
+    
+    // Mark Rest Button
+    document.getElementById('btn-mark-break').addEventListener('click', () => {
+        const key = getTodayKey();
+        appState.dayHistory[key] = 'break';
+        saveData();
+        renderCalendar(); // Re-render to show the new status immediately
+        alert("Enjoy your rest! 🛌 It counts as a valid break.");
+    });
+
+    renderCalendar(); // Initial Draw
     // 4. Initialize Complex Elements
     setTimeout(() => {
         try { initSubjectFilters('prelims'); } catch(e) { console.error("Syllabus Error:", e); }
@@ -260,46 +276,55 @@ function initGreeting() {
 }
 
 // --- FIXED LOAD DATA FUNCTION ---
+// --- FIXED LOAD DATA FUNCTION (Production Version) ---
 function loadData() {
     try {
         const saved = localStorage.getItem('studyApp_v4');
         if (saved && saved !== "undefined" && saved !== "null") {
             appState = JSON.parse(saved);
             
-            // Safety Checks
+            // --- Safety Checks for Existing Data ---
             if (!appState.syllabus) appState.syllabus = {};
             if (!Array.isArray(appState.mockScores.prelims)) appState.mockScores.prelims = [];
             if (!Array.isArray(appState.mockScores.mains)) appState.mockScores.mains = [];
-            if (!appState.usedReasonIndices) appState.usedReasonIndices = [];
+            
+            // 🆕 CALENDAR FIX: Ensure dayHistory exists so calendar doesn't crash
+            if (!appState.dayHistory) appState.dayHistory = {};
+
+            // 🆕 REASONS FIX: Always reset this to empty on load
+            // This ensures the "Tell me why" game is fresh every time she opens the app
             appState.usedReasonIndices = [];
+            
         } else {
             throw new Error("No saved data found");
         }
     } catch (e) {
         console.warn("Initializing new data...", e);
         
-        // 1. Set Default State
+        // 1. Set Default State for New Users
         appState = {
             streak: 0, 
             lastCheckIn: null, 
             syllabus: {}, 
             mockScores: { prelims: [], mains: [] },
             totalStudyHours: 0,
-            usedReasonIndices: []
+            usedReasonIndices: [],
+            dayHistory: {} // 🆕 Added for Calendar
         };
         
-        // 2. FIXED: Correctly loop through the nested syllabus object
-        // We use Object.values() to get the arrays, then .flat() to merge them
-        const allPrelimsTopics = Object.values(DATA.syllabus.prelims).flat();
-        const allMainsTopics = Object.values(DATA.syllabus.mains).flat();
+        // 2. Syllabus Logic
+        if (typeof DATA !== 'undefined' && DATA.syllabus) {
+            const allPrelimsTopics = Object.values(DATA.syllabus.prelims).flat();
+            const allMainsTopics = Object.values(DATA.syllabus.mains).flat();
 
-        allPrelimsTopics.forEach(topic => {
-            appState.syllabus[topic] = 0;
-        });
-        
-        allMainsTopics.forEach(topic => {
-            appState.syllabus[topic] = 0;
-        });
+            allPrelimsTopics.forEach(topic => {
+                appState.syllabus[topic] = 0;
+            });
+            
+            allMainsTopics.forEach(topic => {
+                appState.syllabus[topic] = 0;
+            });
+        }
     }
 }
 
@@ -331,6 +356,7 @@ if(checkInBtn) {
         if (appState.lastCheckIn !== today) {
             appState.streak++;
             appState.lastCheckIn = today;
+            markDay('study');
             saveData();
             updateStreakUI();
         }
@@ -695,6 +721,100 @@ function resetAppData() {
         window.location.reload();
     }
 }
+
+// --- 📅 CALENDAR LOGIC WITH NAVIGATION ---
+
+// 1. Global State for Calendar View (Defaults to Today)
+let currentViewDate = new Date(); 
+
+function getTodayKey() {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const monthTitle = document.getElementById('current-month-year');
+    if(!grid) return;
+
+    grid.innerHTML = "";
+    
+    // Use the State variable (currentViewDate) instead of "now"
+    const viewYear = currentViewDate.getFullYear();
+    const viewMonth = currentViewDate.getMonth();
+    
+    const todayKey = getTodayKey();
+
+    // Update Title
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    monthTitle.innerText = `${monthNames[viewMonth]} ${viewYear}`;
+
+    // Date Math
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); // 0 = Sun
+
+    // Render Headers (Su, Mo...)
+    const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    days.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'cal-day-header';
+        div.innerText = d;
+        grid.appendChild(div);
+    });
+
+    // Empty slots for start of month
+    for (let i = 0; i < firstDayIndex; i++) {
+        const empty = document.createElement('div');
+        grid.appendChild(empty);
+    }
+
+    // Render Days
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'cal-day';
+        dayDiv.innerText = d;
+
+        // Create YYYY-MM-DD Key
+        // Note: Months are 0-indexed, so we add 1 for the key string
+        const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        
+        // Check Status
+        const status = appState.dayHistory[dateKey];
+
+        // Highlight Today
+        if (dateKey === todayKey) {
+            dayDiv.classList.add('today');
+        }
+
+        // Apply Colors based on Status
+        if (status === 'study') {
+            dayDiv.classList.add('status-study'); // Green
+        } else if (status === 'break') {
+            dayDiv.classList.add('status-break'); // Teal
+        } 
+        
+        // 👇 CHANGED: "Red/Missed" Logic
+        // We ONLY mark it red if:
+        // 1. It has NO status
+        // 2. The date is in the past (before today)
+        // 3. AND the date is AFTER the feature launch date (e.g., Feb 12, 2026)
+        // Since you want ALL history white for now, we just DELETE the 'else if' block entirely.
+        
+        // (If you want "Red" to start appearing from tomorrow onwards, 
+        //  you would uncomment this later. For now, it stays White/Neutral.)
+
+        grid.appendChild(dayDiv);
+    }
+}
+
+// --- Navigation Functions ---
+
+function changeMonth(step) {
+    // step is -1 (prev) or +1 (next)
+    currentViewDate.setMonth(currentViewDate.getMonth() + step);
+    renderCalendar();
+}
+
 
 
 
