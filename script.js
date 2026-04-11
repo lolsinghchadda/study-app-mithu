@@ -438,7 +438,7 @@ function renderTopicList(examType, subjectName) {
 
 // --- MESSAGES ---
 function showMessage(type) {
-    const msgs = DATA.messages[type];
+    const msgs = messages[type];
     const txt = msgs[Math.floor(Math.random() * msgs.length)];
     const el = document.getElementById('message-text');
     if(el) el.textContent = txt;
